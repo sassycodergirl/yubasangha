@@ -1,26 +1,17 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design tokens for the public site. Add to these as new sections land. */
+@theme {
+  --color-ink: #0b0705;
+  --color-ink-soft: #1a100b;
+  --color-maroon: #a72110;
+  --color-maroon-dark: #661821;
+  --color-gold: #ffc858;
+  --color-gold-soft: #e6c893;
+
+  --font-display: var(--font-cinzel), Georgia, "Times New Roman", serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.banner-section .flex{
+  justify-content: center;
 }

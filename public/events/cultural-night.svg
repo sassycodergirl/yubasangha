@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="580" viewBox="0 0 420 580">
+  <defs>
+    <radialGradient id="stage" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#7c1f2b"/>
+      <stop offset="55%" stop-color="#241014"/>
+      <stop offset="100%" stop-color="#0b0705"/>
+    </radialGradient>
+  </defs>
+  <rect width="420" height="580" fill="url(#stage)"/>
+  <path d="M180 500 V300 Q180 260 210 260 Q240 260 240 300 V500" fill="none" stroke="#e6c893" stroke-opacity="0.6" stroke-width="3"/>
+  <circle cx="210" cy="220" r="35" fill="none" stroke="#e6c893" stroke-opacity="0.6" stroke-width="3"/>
+  <path d="M195 340 L225 340 L232 420 L188 420 Z" fill="#e6c893" fill-opacity="0.25"/>
+  <g fill="#e6c893" fill-opacity="0.5">
+    <circle cx="100" cy="150" r="2.5"/><circle cx="320" cy="130" r="2.5"/>
+    <circle cx="80" cy="450" r="2.5"/><circle cx="340" cy="470" r="2.5"/>
+  </g>
+</svg>

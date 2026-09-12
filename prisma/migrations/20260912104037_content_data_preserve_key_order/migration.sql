@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Content" ALTER COLUMN "data" SET DATA TYPE JSON;

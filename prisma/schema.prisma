@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Prisma 7: no `url` here — the connection string is supplied at runtime via
+// a driver adapter (see src/lib/db.js) and to the CLI via prisma.config.js.
+datasource db {
+  provider = "postgresql"
+}
+
+// Single admin login (NextAuth Credentials provider). One row, created by
+// prisma/seed.js from ADMIN_EMAIL / ADMIN_PASSWORD in .env — no signup flow.
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+// Generic content store, WordPress-style: every editable piece of content is
+// a row identified by (type, slug), with its actual fields in `data` (JSON)
+// matching the shape of the corresponding src/lib/<section>.js config. New
+// content doesn't need a schema migration — just a new (type, slug) row and
+// an admin field schema (src/lib/admin/sections.js) describing its form.
+model Content {
+  id        String   @id @default(cuid())
+  type      String // "homepage_section" for now; "event" etc. later
+  slug      String // e.g. "hero", "about", "theme" — matches the section id
+  title     String? // human label shown in the admin list, optional
+  // `@db.Json` (not the jsonb default) -- jsonb silently reorders object
+  // keys, which broke the admin form's field order matching what's written
+  // here. Plain json is stored as text and preserves insertion order.
+  data      Json     @db.Json
+  order     Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, slug])
+}

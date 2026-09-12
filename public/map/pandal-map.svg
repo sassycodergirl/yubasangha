@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#241a12"/>
+      <stop offset="100%" stop-color="#120b07"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#ground)"/>
+
+  <!-- faint isometric grid, standing in for real pandal artwork -->
+  <g stroke="#c99a3b" stroke-opacity="0.08" stroke-width="1">
+    <path d="M0 0L1200 800M100 0L1200 700M300 0L1200 500M500 0L1200 300M700 0L1200 100M900 0L1100 0
+             M1200 0L0 800M1100 0L0 700M900 0L0 500M700 0L0 300M500 0L0 100"/>
+  </g>
+
+  <!-- simple isometric "structures" placeholder -->
+  <g opacity="0.85">
+    <polygon points="500,220 700,220 780,300 780,460 700,540 500,540 420,460 420,300" fill="#3a2417" stroke="#c99a3b" stroke-opacity="0.35" stroke-width="2"/>
+    <polygon points="560,260 640,260 640,340 560,340" fill="#5a3a22" stroke="#c99a3b" stroke-opacity="0.3"/>
+    <polygon points="300,420 420,420 420,540 300,540" fill="#2e2016" stroke="#c99a3b" stroke-opacity="0.25"/>
+    <polygon points="780,420 900,420 900,540 780,540" fill="#2e2016" stroke="#c99a3b" stroke-opacity="0.25"/>
+    <path d="M420 300L200 380M780 300L1000 380M420 460L200 540M780 460L1000 540" stroke="#c99a3b" stroke-opacity="0.2" stroke-width="2"/>
+  </g>
+</svg>

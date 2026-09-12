@@ -1,10 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
 import HeroCountdown from "./HeroCountdown";
 import OrnamentDivider from "@/components/ui/OrnamentDivider";
 import GoldButton from "@/components/ui/GoldButton";
 import GhostButton from "@/components/ui/GhostButton";
-import { PlayIcon, BroadcastIcon, MouseIcon } from "@/components/ui/icons";
+import { BroadcastIcon, MouseIcon } from "@/components/ui/icons";
 
 export default function Hero({ content }) {
   const { motif, titleLines, tagline, location, actions, countdown, bannerImage } = content;
@@ -73,15 +72,6 @@ export default function Hero({ content }) {
               <BroadcastIcon className="size-4" />
               {actions.darshan.label}
             </GhostButton>
-            <Link
-              href={actions.film.href}
-              className="group inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.2em] text-white transition-colors hover:text-gold"
-            >
-              <span className="flex size-10 items-center justify-center rounded-full border border-white/30 transition-colors group-hover:border-gold">
-                <PlayIcon className="size-3.5" />
-              </span>
-              {actions.film.label}
-            </Link>
           </div>
 
           <HeroCountdown countdown={countdown} />

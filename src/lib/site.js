@@ -34,7 +34,6 @@ export const heroContent = {
   actions: {
     primary: { label: "Explore the Theme", href: "/theme-2026" },
     darshan: { label: "Live Darshan", href: "/live-darshan" },
-    film: { label: "Watch Film", href: "/theme-2026#film" },
   },
   countdown: {
     label: "Countdown to Mahalaya",

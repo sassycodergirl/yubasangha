@@ -1,28 +1,19 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 
-// Phase 2: the admin panel calls this after saving/publishing content so the
-// affected public (ISR) pages rebuild. Guarded by a shared secret token.
-//
-// Example: POST /api/revalidate  { "path": "/events", "secret": "..." }
-
-export async function POST(request) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const { path, secret } = body ?? {};
-
-  if (!process.env.REVALIDATE_SECRET || secret !== process.env.REVALIDATE_SECRET) {
+// The "Publish Changes" button (see PublishChangesButton.jsx) calls this.
+// Public pages are statically cached (no per-request DB hit) and only ever
+// refresh when this runs -- one call invalidates the whole site at once
+// (every page under the root layout), which is simpler and more robust than
+// tracking which specific slug an admin just edited affects which specific
+// page(s).
+export async function POST() {
+  const session = await auth();
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (typeof path !== "string" || !path.startsWith("/")) {
-    return NextResponse.json({ error: "`path` must be an absolute path" }, { status: 400 });
-  }
-
-  // TODO(Phase 2): revalidatePath(path) once public pages read from the DB.
-  return NextResponse.json({ revalidated: false, path, note: "stub" });
+  revalidatePath("/", "layout");
+  return NextResponse.json({ published: true });
 }

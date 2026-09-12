@@ -3,6 +3,7 @@
 import { useState } from "react";
 import AdminNav from "./AdminNav";
 import SignOutButton from "./SignOutButton";
+import PublishChangesButton from "./PublishChangesButton";
 import OrnamentDivider from "@/components/ui/OrnamentDivider";
 import { MenuIcon, CloseIcon } from "@/components/ui/icons";
 
@@ -68,6 +69,10 @@ export default function AdminShell({ userEmail, children }) {
         </div>
 
         <OrnamentDivider className="mx-2 mt-4 h-2.5" />
+
+        <div className="mt-5 px-1">
+          <PublishChangesButton />
+        </div>
 
         <div className="mt-6 flex-1">
           <AdminNav onNavigate={() => setOpen(false)} />

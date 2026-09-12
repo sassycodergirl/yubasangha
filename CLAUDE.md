@@ -56,7 +56,7 @@ src/
     admin/               → CMS admin panel (own layout, noindex; auth in Phase 2)
       layout.js  page.js
     api/                 → route handlers
-      revalidate/route.js → on-demand ISR hook (stub until Phase 2)
+      revalidate/route.js → "Publish Changes" button's on-demand ISR hook
   components/
     layout/              → Header, Footer, DonateModal
     home/                → homepage sections (Hero, About, Theme, …) + their

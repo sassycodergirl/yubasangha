@@ -430,6 +430,23 @@ export function LogoutIcon(props) {
   );
 }
 
+export function CheckIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M4.5 12.5l5 5 10-11" />
+    </Svg>
+  );
+}
+
+export function RefreshIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M4.5 12a7.5 7.5 0 0112.5-5.6M19.5 12a7.5 7.5 0 01-12.5 5.6" />
+      <path d="M17 4.5v3.5h-3.5M7 19.5V16h3.5" />
+    </Svg>
+  );
+}
+
 // -- Footer social icons --------------------------------------------------
 
 export function FacebookIcon(props) {

@@ -5,6 +5,7 @@ import Image from "next/image";
 import SectionBackground from "@/components/ui/SectionBackground";
 import SectionBlend from "@/components/ui/SectionBlend";
 import { ExpandIcon, UserIcon, PlayIcon } from "@/components/ui/icons";
+import { openOnYoutube } from "@/lib/fullscreen";
 
 function LiveBadge({ className = "" }) {
   return (
@@ -44,10 +45,19 @@ function useLiveCounter() {
 
 const AVATAR_COUNT = 5;
 
-function requestFullscreenOn(el) {
-  if (!el) return;
-  const request = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-  request?.call(el);
+// iOS Safari only supports the Fullscreen API on the actual video-bearing
+// element (the iframe), not an arbitrary wrapping <div> -- `el` here must be
+// the iframe itself. Some older iOS versions don't support it even there, so
+// if the request fails (or there's nothing to call it on), fall back to
+// opening the stream directly on YouTube, where fullscreen always works.
+function requestFullscreenOn(el, youtubeVideoId) {
+  const request = el?.requestFullscreen || el?.webkitRequestFullscreen;
+  const result = request?.call(el);
+  if (result?.catch) {
+    result.catch(() => openOnYoutube(youtubeVideoId));
+  } else if (!result) {
+    openOnYoutube(youtubeVideoId);
+  }
 }
 
 // Live Darshan page's own take on the homepage's LiveDarshan section --
@@ -67,19 +77,34 @@ function requestFullscreenOn(el) {
 export default function LiveDarshanShowcase({ content, videos }) {
   const { eyebrow, tagline, devoteesLabel, fullscreenLabel } = content;
   const devotees = useLiveCounter();
-  const videoWrapRef = useRef(null);
-  const tileWrapRefs = useRef({});
+  const iframeRef = useRef(null);
+  const tileIframeRefs = useRef({});
+  const pendingFullscreenId = useRef(null);
 
   const featured = videos.find((v) => v.featured) ?? videos[0] ?? null;
   const others = videos.filter((v) => v.id !== featured?.id);
   const [playingId, setPlayingId] = useState(null);
 
-  const handleFullscreen = () => requestFullscreenOn(videoWrapRef.current);
+  const handleFullscreen = () => requestFullscreenOn(iframeRef.current, featured?.youtubeVideoId);
 
+  // A tile's iframe only mounts once it's actually playing -- if it wasn't
+  // already, start it and let the effect below request fullscreen once that
+  // iframe exists, rather than trying (and failing) to do both in one tick.
   function handleTileFullscreen(video) {
-    if (playingId !== video.id) setPlayingId(video.id);
-    requestFullscreenOn(tileWrapRefs.current[video.id]);
+    if (playingId !== video.id) {
+      pendingFullscreenId.current = video.id;
+      setPlayingId(video.id);
+      return;
+    }
+    requestFullscreenOn(tileIframeRefs.current[video.id], video.youtubeVideoId);
   }
+
+  useEffect(() => {
+    if (!pendingFullscreenId.current || pendingFullscreenId.current !== playingId) return;
+    const video = others.find((v) => v.id === playingId);
+    requestFullscreenOn(tileIframeRefs.current[playingId], video?.youtubeVideoId);
+    pendingFullscreenId.current = null;
+  }, [playingId, others]);
 
   return (
     <>
@@ -99,12 +124,10 @@ export default function LiveDarshanShowcase({ content, videos }) {
           </div>
 
           {/* Stream */}
-          <div
-            ref={videoWrapRef}
-            className="relative mt-14 aspect-video w-full overflow-hidden rounded-2xl border-2 border-gold bg-black shadow-[0_25px_60px_-20px_rgba(52,31,20,0.5)]"
-          >
+          <div className="relative mt-14 aspect-video w-full overflow-hidden rounded-2xl border-2 border-gold bg-black shadow-[0_25px_60px_-20px_rgba(52,31,20,0.5)]">
             {featured?.youtubeVideoId ? (
               <iframe
+                ref={iframeRef}
                 key={featured.id}
                 className="absolute inset-0 h-full w-full"
                 src={`https://www.youtube.com/embed/${featured.youtubeVideoId}?autoplay=1&mute=1&playsinline=1&modestbranding=1&rel=0`}
@@ -197,14 +220,12 @@ export default function LiveDarshanShowcase({ content, videos }) {
                     key={video.id}
                     className="overflow-hidden rounded-2xl border border-gold/20 bg-white/[0.03] shadow-lg transition-colors hover:border-gold/40"
                   >
-                    <div
-                      ref={(el) => {
-                        tileWrapRefs.current[video.id] = el;
-                      }}
-                      className="relative aspect-video w-full overflow-hidden bg-black"
-                    >
+                    <div className="relative aspect-video w-full overflow-hidden bg-black">
                       {playing ? (
                         <iframe
+                          ref={(el) => {
+                            tileIframeRefs.current[video.id] = el;
+                          }}
                           className="absolute inset-0 h-full w-full"
                           src={`https://www.youtube.com/embed/${video.youtubeVideoId}?autoplay=1&playsinline=1&modestbranding=1&rel=0`}
                           title={video.title}

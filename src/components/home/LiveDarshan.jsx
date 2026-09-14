@@ -5,6 +5,7 @@ import SectionBackground from "@/components/ui/SectionBackground";
 import SectionBlend from "@/components/ui/SectionBlend";
 import GhostButton from "@/components/ui/GhostButton";
 import { ArrowRightIcon, ExpandIcon, UserIcon } from "@/components/ui/icons";
+import { openOnYoutube } from "@/lib/fullscreen";
 
 function LiveBadge({ className = "" }) {
   return (
@@ -47,13 +48,23 @@ export default function LiveDarshan({ content, youtubeVideoId }) {
   const { eyebrow, tagline, cta, fullscreenLabel, devoteesLabel, backgroundImage } = content;
   const devotees = useLiveCounter();
   const videoWrapRef = useRef(null);
+  const iframeRef = useRef(null);
 
+  // iOS Safari only supports the Fullscreen API on the actual video-bearing
+  // element (the iframe), not an arbitrary wrapping <div> -- targeting the
+  // div (as this used to) silently no-ops there. Some older iOS versions
+  // don't support it at all even on the iframe, so if the request fails (or
+  // there's nothing to call it on), fall back to opening the stream
+  // directly on YouTube, where fullscreen always works.
   const handleFullscreen = () => {
-    const el = videoWrapRef.current;
-    if (!el) return;
-    const request =
-      el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-    request?.call(el);
+    const el = iframeRef.current;
+    const request = el?.requestFullscreen || el?.webkitRequestFullscreen;
+    const result = request?.call(el);
+    if (result?.catch) {
+      result.catch(() => openOnYoutube(youtubeVideoId));
+    } else if (!result) {
+      openOnYoutube(youtubeVideoId);
+    }
   };
 
   return (
@@ -90,6 +101,7 @@ export default function LiveDarshan({ content, youtubeVideoId }) {
           >
             {youtubeVideoId ? (
               <iframe
+                ref={iframeRef}
                 className="absolute inset-0 h-full w-full"
                 src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&mute=1&playsinline=1&modestbranding=1&rel=0`}
                 title={eyebrow}

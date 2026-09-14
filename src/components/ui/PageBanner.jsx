@@ -14,7 +14,10 @@ export default function PageBanner({ content }) {
   const { title, breadcrumb, backgroundImage } = content;
 
   return (
-    <section className="relative overflow-hidden bg-ink py-24 text-white sm:py-32">
+    // `pt` is taller than `pb` -- Header is absolutely positioned (not part
+    // of normal document flow), so this section's own top padding is what
+    // has to clear its ~144px-tall logo, not the header itself.
+    <section className="relative overflow-hidden bg-ink pb-24 pt-40 text-white sm:pb-32 sm:pt-48">
       <SectionBackground image={backgroundImage} />
       <SectionBlend />
 

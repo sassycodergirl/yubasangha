@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import CategoryIcon from "@/components/map/CategoryIcon";
+import { useNaturalAspectRatio } from "@/lib/useNaturalAspectRatio";
 import {
   StarIcon,
   EntryIcon,
@@ -52,11 +54,22 @@ const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 // (the homepage itself keeps its own original overlay design, unchanged).
 export default function PandalMapExplorer({ content }) {
   const { title, tagline, mapImage, categories, pins } = content;
+  // Matches the viewport's shape to the image's own aspect ratio instead of
+  // a fixed height -- see useNaturalAspectRatio's comment and PandalMap.jsx
+  // (homepage) for why this is what keeps a pin's x/y pointing at the same
+  // spot the admin saw when placing it.
+  const ratio = useNaturalAspectRatio(mapImage);
   const [activePinId, setActivePinId] = useState(null);
   const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const viewportRef = useRef(null);
   const dragRef = useRef(null);
+  // Which pin a category's legend entry showed last, per category -- so a
+  // category with several pins (e.g. multiple "Exit"s) steps to the next
+  // one on each click instead of jumping back to the same first match every
+  // time (which looked like it was landing "somewhere else" at random,
+  // since the pin it picked never changed).
+  const categoryCursorRef = useRef({});
 
   const categoryById = Object.fromEntries(categories.map((c) => [c.id, c]));
   const activePin = pins.find((p) => p.id === activePinId) ?? null;
@@ -100,9 +113,18 @@ export default function PandalMapExplorer({ content }) {
       if (pin) centerOnPin(pin);
     }
   };
+  // A category with multiple pins (several "Exit"s, say) steps to the next
+  // one on each click, wrapping back to the first after the last -- always
+  // landing on one real pin (reusing selectPin's own centering/tooltip/
+  // highlight), never an averaged position between them that might not
+  // correspond to anything on the map.
   const selectCategory = (categoryId) => {
-    const pin = pins.find((p) => p.categoryId === categoryId);
-    if (pin) selectPin(pin.id);
+    const matches = pins.filter((p) => p.categoryId === categoryId);
+    if (matches.length === 0) return;
+    const current = categoryCursorRef.current[categoryId] ?? -1;
+    const next = (current + 1) % matches.length;
+    categoryCursorRef.current[categoryId] = next;
+    selectPin(matches[next].id);
   };
 
   const zoomBy = useCallback(
@@ -140,10 +162,21 @@ export default function PandalMapExplorer({ content }) {
     setDragging(false);
   };
 
-  const onWheel = (e) => {
-    e.preventDefault();
-    zoomBy(e.deltaY < 0 ? SCALE_STEP : -SCALE_STEP);
-  };
+  // A React onWheel handler can't reliably stop the page itself from
+  // scrolling while the mouse wheel zooms the map: React attaches wheel
+  // listeners as passive by default, which makes `e.preventDefault()` a
+  // no-op in most browsers. Attaching a real, non-passive listener directly
+  // to the element is what actually blocks the page scroll.
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const handleWheel = (e) => {
+      e.preventDefault();
+      zoomBy(e.deltaY < 0 ? SCALE_STEP : -SCALE_STEP);
+    };
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [zoomBy]);
 
   return (
     <section className="relative overflow-hidden bg-[#d3d1d1] py-16 sm:py-20">
@@ -154,13 +187,15 @@ export default function PandalMapExplorer({ content }) {
               in the panel beside it instead. */}
           <div
             ref={viewportRef}
-            className="relative h-[420px] touch-none select-none overflow-hidden rounded-2xl border-2 border-maroon/30 bg-ink shadow-xl sm:h-[520px] lg:h-[640px]"
-            style={{ cursor: view.scale > MIN_SCALE ? (dragging ? "grabbing" : "grab") : "default" }}
+            className="relative touch-none select-none overflow-hidden rounded-2xl border-2 border-maroon/30 bg-ink shadow-xl"
+            style={{
+              aspectRatio: ratio ?? 4 / 3,
+              cursor: view.scale > MIN_SCALE ? (dragging ? "grabbing" : "grab") : "default",
+            }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={endDrag}
             onPointerLeave={endDrag}
-            onWheel={onWheel}
           >
             <div
               className="absolute inset-0 transition-transform duration-150 ease-out"
@@ -173,12 +208,11 @@ export default function PandalMapExplorer({ content }) {
                 unoptimized
                 priority
                 sizes="(min-width: 1024px) 70vw, 100vw"
-                className="pointer-events-none object-cover"
+                className="pointer-events-none object-contain"
               />
 
               {pins.map((pin) => {
                 const category = categoryById[pin.categoryId];
-                const Icon = ICONS[category.icon] ?? StarIcon;
                 const active = pin.id === activePinId;
                 return (
                   <button
@@ -196,7 +230,7 @@ export default function PandalMapExplorer({ content }) {
                       active ? "z-20 ring-4 ring-white/40" : "z-10 hover:brightness-110"
                     }`}
                   >
-                    <Icon className="size-3.5 sm:size-4" />
+                    <CategoryIcon category={category} icons={ICONS} className="size-3.5 sm:size-4" />
                   </button>
                 );
               })}
@@ -216,8 +250,16 @@ export default function PandalMapExplorer({ content }) {
               )}
             </div>
 
-            {/* Zoom controls -- Google-Maps-style +/- stack */}
-            <div className="absolute bottom-5 right-5 z-30 flex flex-col overflow-hidden rounded-lg border border-gold/30 bg-ink/80 backdrop-blur-sm">
+            {/* Zoom controls -- Google-Maps-style +/- stack. Each one stops
+                pointerdown from reaching the viewport's own handler below:
+                that handler calls setPointerCapture on itself once zoomed
+                in (view.scale > MIN_SCALE -- exactly when these controls
+                matter most), which was hijacking the press before these
+                buttons' own onClick ever fired. */}
+            <div
+              onPointerDown={(e) => e.stopPropagation()}
+              className="absolute bottom-5 right-5 z-30 flex flex-col overflow-hidden rounded-lg border border-gold/30 bg-ink/80 backdrop-blur-sm"
+            >
               <button
                 type="button"
                 onClick={() => zoomBy(SCALE_STEP)}
@@ -241,6 +283,7 @@ export default function PandalMapExplorer({ content }) {
             {view.scale > MIN_SCALE && (
               <button
                 type="button"
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={resetView}
                 className="absolute bottom-[4.6rem] right-5 z-30 rounded-md border border-gold/30 bg-ink/80 px-2.5 py-1 text-[10px] uppercase tracking-wide text-white/80 backdrop-blur-sm transition-colors hover:bg-white/10"
               >
@@ -261,7 +304,6 @@ export default function PandalMapExplorer({ content }) {
             <p className="mt-8 text-[11px] uppercase tracking-[0.25em] text-maroon">Map Legend</p>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
               {categories.map((category) => {
-                const Icon = ICONS[category.icon] ?? StarIcon;
                 const isActive = activeCategory?.id === category.id;
                 return (
                   <button
@@ -278,7 +320,7 @@ export default function PandalMapExplorer({ content }) {
                       className="flex size-7 shrink-0 items-center justify-center rounded-full border border-ink/15"
                       style={{ backgroundColor: category.color }}
                     >
-                      <Icon className="size-3.5 text-ink" />
+                      <CategoryIcon category={category} icons={ICONS} className="size-3.5 text-ink" />
                     </span>
                     <span className="text-[11px] font-semibold uppercase leading-tight tracking-wide">
                       {category.label}

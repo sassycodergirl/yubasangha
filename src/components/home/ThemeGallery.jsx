@@ -145,7 +145,7 @@ export default function ThemeGallery({ items }) {
         type="button"
         onClick={() => handleArrow(-1)}
         aria-label="Previous"
-        className="absolute left-0 top-1/2 z-20 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border border-gold/40 bg-ink/60 text-gold backdrop-blur-sm transition-colors hover:bg-gold/10"
+        className="absolute left-0 top-1/2 z-20 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-gold/40 bg-ink/60 text-gold backdrop-blur-sm transition-colors hover:bg-gold/10"
       >
         <ArrowLeftIcon className="size-4" />
       </button>
@@ -153,7 +153,7 @@ export default function ThemeGallery({ items }) {
         type="button"
         onClick={() => handleArrow(1)}
         aria-label="Next"
-        className="absolute right-0 top-1/2 z-20 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border border-gold/40 bg-ink/60 text-gold backdrop-blur-sm transition-colors hover:bg-gold/10"
+        className="absolute right-0 top-1/2 z-20 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-gold/40 bg-ink/60 text-gold backdrop-blur-sm transition-colors hover:bg-gold/10"
       >
         <ArrowRightIcon className="size-4" />
       </button>
@@ -185,7 +185,7 @@ export default function ThemeGallery({ items }) {
             type="button"
             onClick={() => goTo(index - 1)}
             aria-label="Previous image"
-            className="absolute left-4 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-gold/40 bg-ink/70 text-gold transition-colors hover:bg-gold/10"
+            className="absolute left-4 top-1/2 z-10 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-gold/40 bg-ink/70 text-gold transition-colors hover:bg-gold/10"
           >
             <ArrowLeftIcon className="size-5" />
           </button>
@@ -193,7 +193,7 @@ export default function ThemeGallery({ items }) {
             type="button"
             onClick={() => goTo(index + 1)}
             aria-label="Next image"
-            className="absolute right-4 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-gold/40 bg-ink/70 text-gold transition-colors hover:bg-gold/10"
+            className="absolute right-4 top-1/2 z-10 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-gold/40 bg-ink/70 text-gold transition-colors hover:bg-gold/10"
           >
             <ArrowRightIcon className="size-5" />
           </button>

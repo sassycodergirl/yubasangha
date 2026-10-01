@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDownIcon, PlusIcon } from "@/components/ui/icons";
 import ImageUploadField from "@/components/admin/ImageUploadField";
+import VideoUploadField from "@/components/admin/VideoUploadField";
 
 // Generic JSON-object form editor: given any object shaped like one of the
 // src/lib/<section>.js configs, it renders an editable form for it and PUTs
@@ -15,6 +16,39 @@ import ImageUploadField from "@/components/admin/ImageUploadField";
 const LABEL_OVERRIDES = {
   nav: "Navigation Menu",
   eyebrow: "Sub Title",
+  images: "Media",
+  isVideo: "Is Video",
+  videoUrl: "YouTube link or external video link",
+  layoutSettings: "Grid Layout",
+  tierLayouts: "Per-Tier Overrides",
+  uploadedVideo: "Or Upload Your Own Video",
+};
+
+// Fields rendered as a dropdown instead of a free-text box -- keyed by the
+// raw JSON key (not every "layout"/"align"-named field across every section
+// necessarily means the same thing, but in practice each of these only
+// shows up where this exact option set applies; add a new entry here for
+// any future field that should offer a fixed set of choices instead of
+// open text).
+const SELECT_OPTIONS = {
+  layout: [
+    { value: "flex", label: "Flowing (wraps, centered)" },
+    { value: "grid", label: "Fixed grid (even columns)" },
+  ],
+  align: [
+    { value: "left", label: "Left" },
+    { value: "center", label: "Center" },
+    { value: "right", label: "Right" },
+  ],
+};
+
+// A short explanatory line shown under a field's input -- keyed by the raw
+// JSON key, for fields whose purpose or interaction with other fields isn't
+// obvious from the label alone (e.g. "Columns" only doing anything once
+// "Layout" is set to the grid option).
+const FIELD_HELP = {
+  columns: "Only applies when Layout is set to \"Fixed grid\".",
+  tierLayouts: "Leave empty to use Layout/Columns/Align above for every tier. Add a row only for a tier that should look different -- its Tier must match that tier's exact name (e.g. \"Gold\").",
 };
 
 function humanize(key) {
@@ -36,9 +70,15 @@ function isPlainObject(value) {
 
 // A short label for an array item's collapsed header -- first common
 // "name-like" field found, so an unopened nav/gallery/sponsor row is still
-// identifiable at a glance.
+// identifiable at a glance. Deliberately excludes "id" -- on arrays where
+// it's just an internal key (gallery media, map pins: "g1".."g8", "p1"..
+// "p12") rather than an admin-meaningful name, using it as the label left a
+// gap in the visible numbering whenever an item in the middle was removed
+// (g7 deleted -> "g6" sits right above "g8"). Falling through to the
+// position-based "Item N" instead means the numbering always stays
+// contiguous after a delete, with no dependency on what's in the data.
 function summarizeItem(item, index) {
-  const key = ["label", "title", "name", "eyebrow", "id", "year"].find(
+  const key = ["label", "title", "name", "eyebrow", "year"].find(
     (k) => typeof item[k] === "string" && item[k].trim()
   );
   return key ? item[key] : `Item ${index + 1}`;
@@ -61,20 +101,50 @@ const fieldLabelClass = "block text-xs font-medium uppercase tracking-[0.06em] t
 // Excludes "Image Alt" / "Photo Alt" etc. -- those are plain alt-text
 // strings, not image paths, even though their label contains "image"/"photo".
 const isImageField = (label) => /image|logo|photo|banner|favicon|^src$/i.test(label) && !/alt$/i.test(label);
+// Exact raw-key match (not a label regex like isImageField) -- "uploadedVideo"
+// is the one field this whole form treats as a video file upload; "videoUrl"
+// stays a plain text field (an external link, typed or pasted, not uploaded).
+const isVideoUploadField = (key) => key === "uploadedVideo";
 
 // Which fields get a full-width row inside a two-column nested grid (arrays,
 // nested objects, images, and long text) vs. a compact half-width cell
 // (short strings, numbers, booleans) -- e.g. a nav item's Href + Label sit
 // side by side, but its (hypothetical) description would still get its own
 // full row.
-function isWideValue(label, value) {
-  if (Array.isArray(value) || isPlainObject(value) || isImageField(label)) return true;
+function isWideValue(label, value, fieldKey) {
+  if (Array.isArray(value) || isPlainObject(value) || isImageField(label) || isVideoUploadField(fieldKey)) {
+    return true;
+  }
   if (typeof value === "boolean" || typeof value === "number") return false;
   const str = value ?? "";
   return str.length > 60 || /description|body|tagline|content/i.test(label);
 }
 
-function LeafField({ label, value, onChange }) {
+function LeafField({ label, value, onChange, fieldKey }) {
+  if (isVideoUploadField(fieldKey)) {
+    return <VideoUploadField label={label} value={value} onChange={onChange} />;
+  }
+
+  const selectOptions = fieldKey ? SELECT_OPTIONS[fieldKey] : null;
+  if (selectOptions) {
+    return (
+      <label className={fieldLabelClass}>
+        {label}
+        <select
+          value={value ?? selectOptions[0].value}
+          onChange={(e) => onChange(e.target.value)}
+          className={inputClass}
+        >
+          {selectOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
+  }
+
   if (typeof value === "boolean") {
     return (
       <label className="flex items-center gap-2.5 text-sm text-ink">
@@ -243,7 +313,17 @@ function ArrayOfObjects({ label, value, onChange }) {
     onChange(value.filter((_, i) => i !== index));
   }
   function addItem() {
-    onChange([...value, emptyLike(value[0] ?? {})]);
+    const next = emptyLike(value[0] ?? {});
+    // On arrays shaped with an "id" key, a blank one isn't just unfilled --
+    // it's used as the React key (and sometimes a lookup key) wherever this
+    // data renders on the public site, so two blank-"id" items crashes that
+    // page with a duplicate-key error the moment a second one is added
+    // without the admin filling it in first. Generating one up front avoids
+    // that regardless of whether the admin ever touches the ID field.
+    if (Object.prototype.hasOwnProperty.call(next, "id")) {
+      next.id = `item-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    }
+    onChange([...value, next]);
     setOpenIndexes((current) => new Set(current).add(value.length));
   }
 
@@ -319,7 +399,7 @@ function ArrayOfObjects({ label, value, onChange }) {
   );
 }
 
-function FieldRouter({ label, value, onChange }) {
+function FieldRouter({ label, value, onChange, fieldKey }) {
   if (Array.isArray(value)) {
     const isObjectList = value.length > 0 && value.every(isPlainObject);
     if (isObjectList) return <ArrayOfObjects label={label} value={value} onChange={onChange} />;
@@ -336,7 +416,7 @@ function FieldRouter({ label, value, onChange }) {
     );
   }
 
-  return <LeafField label={label} value={value} onChange={onChange} />;
+  return <LeafField label={label} value={value} onChange={onChange} fieldKey={fieldKey} />;
 }
 
 // Top-level (a whole section's fields): one full-width column, each field
@@ -354,13 +434,19 @@ function ObjectFields({ value, onChange, nested = false }) {
             key={key}
             className={
               nested
-                ? isWideValue(label, val)
+                ? isWideValue(label, val, key)
                   ? "sm:col-span-2"
                   : undefined
                 : "py-5 first:pt-0 last:pb-0"
             }
           >
-            <FieldRouter label={label} value={val} onChange={(next) => onChange({ ...value, [key]: next })} />
+            <FieldRouter
+              label={label}
+              value={val}
+              fieldKey={key}
+              onChange={(next) => onChange({ ...value, [key]: next })}
+            />
+            {FIELD_HELP[key] ? <p className="mt-1.5 text-xs text-gray-500">{FIELD_HELP[key]}</p> : null}
           </div>
         );
       })}

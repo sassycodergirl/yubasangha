@@ -1,64 +1,74 @@
-// Shared "Puja Schedule" ritual list -- one content block, edited once from
-// either the Homepage or Schedule page admin screen (see the "schedule-events"
-// entry in src/lib/admin/sections.js). The homepage's Puja Schedule section
-// renders each ritual as an icon + time + label; the Schedule page's day
-// timeline renders the same rituals with a photo + description as well --
-// each component just reads the fields it needs, so an admin only ever
-// enters a ritual's time/label/icon/photo/description in one place.
+// Shared "Puja Schedule" content -- one block, edited once from either the
+// Homepage's Puja Schedule section or the Schedule page's own admin screen
+// (see the "schedule-events" entry in src/lib/admin/sections.js; it also
+// gets its own top-level "Puja Schedule" admin nav item, same as Events --
+// see src/app/admin/schedule/page.js). Both pages render the exact same
+// day-card grid (src/components/home/PujaSchedule.jsx, reused directly on
+// /schedule the same way Theme.jsx is reused on /theme-2026), so an admin
+// only ever enters this once.
 //
-// `icon` is a key into the ICONS map in PujaSchedule.jsx -- keep it to that
-// fixed set of names (aroti, flower, bhog, temple, dance, drum, immersion)
-// rather than free text.
+// Day-grouped, not a flat ritual list: each entry is one day of the
+// festival (title + an ISO `date`, used to derive the day number/month/
+// weekday badge -- see getDateLabel in src/lib/dateFormat.js). Two entries
+// can share the same `date` (e.g. "Maha Ashtami" and "Sandhi Puja" both fall
+// on Ashtami) when a day has a named sub-ritual worth its own card.
+//
+// `items` is free text, not a fixed {label, time} shape -- an admin just
+// types a line per ritual (PujaSchedule.jsx's ItemText bolds a leading
+// "name — time" automatically if written that way, but any plain line
+// works too) instead of being boxed into separate label/time fields for
+// every single entry.
 export const scheduleEventsContent = {
-  events: [
+  days: [
     {
-      time: "06:00 AM",
-      label: "Mangal Aroti",
-      icon: "aroti",
-      image: null,
-      description: "The day begins with the first offering of light to the Goddess, as the pandal wakes to the sound of conch shells and bells.",
+      title: "Maha Shashthi",
+      date: "2026-09-22",
+      items: ["Bodhon — 7:00 AM", "Amontron & Adhibas — 7:00 PM"],
     },
     {
-      time: "08:00 AM",
-      label: "Pushpaanjali",
-      icon: "flower",
-      image: null,
-      description: "Devotees gather for the communal flower offering, repeating the mantras together in one voice.",
+      title: "Maha Saptami",
+      date: "2026-09-23",
+      items: [
+        "Nabopatrika Snan — 6:30 AM",
+        "Mahasaptami Puja — 9:30 AM",
+        "Saptami Anjali — 11:00 AM",
+        "Sandhya Arti — 6:30 PM",
+      ],
     },
     {
-      time: "12:30 PM",
-      label: "Bhog",
-      icon: "bhog",
-      image: null,
-      description: "A shared meal, cooked and served by volunteers to hundreds of visitors across the afternoon.",
+      title: "Maha Ashtami",
+      date: "2026-09-24",
+      items: [
+        "Puja Starts — 5:00 AM",
+        "Ashtami Anjali — 10:00 AM",
+        "Sandhi Puja Begins — 7:26 PM",
+        "Sandhya Arti — 6:30 PM",
+      ],
     },
     {
-      time: "04:00 PM",
-      label: "Sandhi Puja",
-      icon: "temple",
-      image: null,
-      description: "The most sacred 48 minutes of the festival, bridging Ashtami and Navami with 108 lamps and offerings.",
+      title: "Sandhi Puja",
+      date: "2026-09-24",
+      items: ["108 Deep Daan — 7:50 PM", "Sandhi Puja Ends — 8:14 PM"],
     },
     {
-      time: "07:00 PM",
-      label: "Cultural Events",
-      icon: "dance",
-      image: null,
-      description: "An evening of music, dance, and performances on the community stage, open to every generation.",
+      title: "Maha Navami",
+      date: "2026-09-25",
+      items: [
+        "Puja Starts — 6:00 AM",
+        "Navami Anjali — 8:00 AM",
+        "Homa & Bali — 8:45 AM",
+        "Sandhya Arti — 6:30 PM",
+      ],
     },
     {
-      time: "08:30 PM",
-      label: "Dhunuchi Naach",
-      icon: "drum",
-      image: null,
-      description: "Dancers carry burning incense pots in a rhythmic offering, one of the night's most striking sights.",
-    },
-    {
-      time: "10:00 PM",
-      label: "Immersion",
-      icon: "immersion",
-      image: null,
-      description: "The idol is carried through the streets in procession for its final journey to the river.",
+      title: "Bijoya Dashami",
+      date: "2026-09-26",
+      items: [
+        "Puja Starts — 7:00 AM",
+        "Aparajita Puja — 9:30 AM",
+        "Sindoor Khela — 10:30 AM",
+        "Immersion Procession — 4:00 PM",
+      ],
     },
   ],
 };

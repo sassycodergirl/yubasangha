@@ -3,7 +3,16 @@ import { db } from "@/lib/db";
 import { findPage, pageLabel } from "@/lib/admin/pages";
 import { findSection, getOtherPagesForSection } from "@/lib/admin/sections";
 import AutoForm from "@/components/admin/AutoForm";
+import ArtistProcessForm from "@/components/admin/ArtistProcessForm";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+
+// Sections with a free-form shape the generic AutoForm can't offer a good
+// editing UI for get their own hand-built form instead (same reasoning as
+// MapForm.jsx on /admin/map) -- keyed by slug, so adding one more just means
+// a new entry here plus the component itself.
+const CUSTOM_FORMS = {
+  "artist-process": ArtistProcessForm,
+};
 
 export async function generateMetadata({ params }) {
   const { section: slug } = await params;
@@ -22,6 +31,7 @@ export default async function AdminSectionEditPage({ params }) {
   });
   const data = row?.data ?? section.seed;
   const otherPages = getOtherPagesForSection(section, pageSlug);
+  const CustomForm = CUSTOM_FORMS[slug];
 
   return (
     <div>
@@ -40,7 +50,7 @@ export default async function AdminSectionEditPage({ params }) {
       ) : null}
 
       <div className="mt-6 rounded-2xl border border-gold bg-white p-6 shadow-sm">
-        <AutoForm slug={slug} initialData={data} />
+        {CustomForm ? <CustomForm slug={slug} initialData={data} /> : <AutoForm slug={slug} initialData={data} />}
       </div>
     </div>
   );

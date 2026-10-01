@@ -1,6 +1,7 @@
 import PageBanner from "@/components/ui/PageBanner";
 import Gallery from "@/components/home/Gallery";
 import { getContent } from "@/lib/getContent";
+import { getGalleryContent } from "@/lib/gallery";
 
 export const metadata = { title: "Gallery" };
 
@@ -9,7 +10,7 @@ export default async function GalleryPage() {
   // places stay in sync from one admin screen.
   const [banner, gallery] = await Promise.all([
     getContent("gallery-banner"),
-    getContent("gallery"),
+    getGalleryContent(),
   ]);
 
   return (

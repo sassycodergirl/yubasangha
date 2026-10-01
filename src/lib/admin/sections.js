@@ -10,6 +10,7 @@ import { sponsorsContent } from "@/lib/eventsSponsors";
 import { footerContent } from "@/lib/footer";
 import { aboutUsBanner, aboutIntroContent } from "@/lib/aboutUsPage";
 import { themePageBanner, themeStoryContent, themeArtistContent } from "@/lib/themePage";
+import { artistPageBanner, artistProcessContent } from "@/lib/artistPage";
 import { schedulePageBanner, scheduleTimelineContent } from "@/lib/schedulePage";
 import { scheduleEventsContent } from "@/lib/scheduleEvents";
 import { galleryPageBanner } from "@/lib/galleryPage";
@@ -18,6 +19,7 @@ import { mapPageBanner } from "@/lib/mapPage";
 import { sponsorsPageBanner } from "@/lib/sponsorsPage";
 import { contactPageBanner, contactIntro, findUsContent } from "@/lib/contactPage";
 import { eventsPageBanner } from "@/lib/eventsPage";
+import { pujoSangbadBanner, pujoSangbadContent, pujaSpotlightContent } from "@/lib/pujoSangbad";
 
 // Registry of every admin-editable content block. Each entry's `slug` is the
 // Content row's unique key; `seed` is the Phase 1 static value used to
@@ -50,7 +52,15 @@ export const sections = [
   // "theme" is shared between the homepage and Theme 2026.
   { slug: "theme-banner", type: "page_section", label: "Banner", pages: ["theme-2026"], seed: themePageBanner },
   { slug: "theme-story", type: "page_section", label: "Theme Story", pages: ["theme-2026"], seed: themeStoryContent },
-  { slug: "theme-artist", type: "page_section", label: "Artist Spotlight", pages: ["theme-2026"], seed: themeArtistContent },
+  // "artist-banner" is filtered out of Theme 2026's own section list below
+  // (its `pages` doesn't include "theme-2026") -- it only ever shows up
+  // ahead of "theme-artist" when viewing the Artist page's own section list.
+  { slug: "artist-banner", type: "page_section", label: "Banner", pages: ["artist"], seed: artistPageBanner },
+  // "theme-artist" is shared between Theme 2026 and the dedicated /artist
+  // page -- one spotlight, edited once, linked out to from Theme 2026 and
+  // the homepage too.
+  { slug: "theme-artist", type: "page_section", label: "Artist Spotlight", pages: ["theme-2026", "artist"], seed: themeArtistContent },
+  { slug: "artist-process", type: "page_section", label: "Creative Process", pages: ["artist"], seed: artistProcessContent },
   { slug: "theme", type: "homepage_section", label: "Theme 2026", pages: ["home", "theme-2026"], seed: themeContent },
 
   { slug: "countdown", type: "homepage_section", label: "Festival Countdown", pages: ["home"], seed: festivalCountdown },
@@ -76,6 +86,17 @@ export const sections = [
   // Pages -- it's the Gallery page's own presentation-only chrome.
   { slug: "gallery-banner", type: "page_section", label: "Banner", pages: ["gallery"], seed: galleryPageBanner },
   { slug: "gallery", type: "homepage_section", label: "Gallery", pages: [], seed: galleryContent },
+
+  // "pujo-sangbad-videos" (the news reel list) is shared between the
+  // homepage's Puja Spotlight section and the Pujo Sangbad page -- same
+  // top-level-nav treatment as "gallery"/"schedule-events" above (see
+  // /admin/pujo-sangbad), so `pages: []`. "pujo-sangbad-banner" stays under
+  // Pages -- it's the Pujo Sangbad page's own presentation-only chrome.
+  // "puja-spotlight" (eyebrow/background) is the homepage section's own
+  // chrome, same pattern as "schedule"/"gallery-banner" above.
+  { slug: "pujo-sangbad-banner", type: "page_section", label: "Banner", pages: ["pujo-sangbad"], seed: pujoSangbadBanner },
+  { slug: "pujo-sangbad-videos", type: "homepage_section", label: "Pujo Sangbad Videos", pages: [], seed: pujoSangbadContent },
+  { slug: "puja-spotlight", type: "homepage_section", label: "Puja Spotlight", pages: ["home"], seed: pujaSpotlightContent },
 
   // "live-darshan" (eyebrow/tagline/etc.) is shared between the homepage and
   // the Live Darshan page -- pure presentation, so it stays under Pages
@@ -139,9 +160,27 @@ export const sections = [
       nav: mainNav,
       donate: {
         buttonLabel: "Donate",
-        qrImage: donateConfig.qrImageSrc,
-        orgName: donateConfig.orgName,
-        upiId: donateConfig.upiId,
+        eyebrow: "Support the Puja",
+        description: "Every contribution helps power the celebration.",
+        // Shown only if an admin disables both methods below.
+        title: "Donate",
+        fallbackMessage: "Donation details coming soon.",
+        // Each method has its own on/off switch -- DonateModal shows only the
+        // methods currently enabled -- and its own modal title, since "Scan &
+        // Donate" doesn't make sense once UPI is off.
+        upi: {
+          enabled: true,
+          title: "Scan & Donate",
+          qrImage: donateConfig.qrImageSrc,
+          orgName: donateConfig.orgName,
+          upiId: donateConfig.upiId,
+        },
+        bankTransfer: {
+          enabled: false,
+          title: "Donate via Bank Transfer",
+          sectionLabel: "Bank Transfer",
+          ...donateConfig.bankDetails,
+        },
       },
     },
   },

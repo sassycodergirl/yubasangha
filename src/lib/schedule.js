@@ -3,7 +3,7 @@
 // src/lib/scheduleEvents.js -- an admin only ever enters a ritual once.
 
 export const scheduleContent = {
-  eyebrow: "Puja Schedule",
+  eyebrow: "Puja Schedule / Nirghnoto",
   cta: { label: "View Full Schedule", href: "/schedule" },
   backgroundImage: null,
 };

@@ -48,10 +48,19 @@ export const heroContent = {
 // Donate modal content. Phase 1: static placeholder QR in /public. Phase 2:
 // admin uploads the real QR (Cloudinary/UploadThing) and this whole object
 // moves to the CMS "Settings" resource -- the modal itself won't need to
-// change, just where this data comes from.
+// change, just where this data comes from. Each payment method has its own
+// `enabled` toggle so an admin can turn either one off (e.g. no bank transfer
+// set up yet, or UPI temporarily down) without deleting its saved details.
 export const donateConfig = {
   qrImageSrc: "/qr-donate.svg",
   qrImageAlt: `QR code to donate to ${siteConfig.name} (placeholder)`,
   orgName: siteConfig.name,
   upiId: "telipukuryubasangha@upi",
+  bankDetails: {
+    bankName: "Central Bank of India",
+    branch: "Nagerbazar, Kolkata",
+    accountName: "Yuba Sangha",
+    accountNumber: "3616930118",
+    ifscCode: "CBIN0285106",
+  },
 };

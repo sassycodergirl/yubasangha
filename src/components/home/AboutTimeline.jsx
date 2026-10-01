@@ -249,7 +249,7 @@ function TimelineSlider({ children }) {
           onClick={() => handleArrow(-1)}
           aria-label="Previous milestone"
           disabled={index === 0}
-          className="flex size-9 items-center justify-center rounded-full border border-gold/40 text-gold transition-colors hover:bg-gold/10 disabled:opacity-30 disabled:hover:bg-transparent"
+          className="flex size-9 cursor-pointer items-center justify-center rounded-full border border-gold/40 text-gold transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
         >
           <ArrowLeftIcon className="size-4" />
         </button>
@@ -258,7 +258,7 @@ function TimelineSlider({ children }) {
           onClick={() => handleArrow(1)}
           aria-label="Next milestone"
           disabled={index === count - 1}
-          className="flex size-9 items-center justify-center rounded-full border border-gold/40 text-gold transition-colors hover:bg-gold/10 disabled:opacity-30 disabled:hover:bg-transparent"
+          className="flex size-9 cursor-pointer items-center justify-center rounded-full border border-gold/40 text-gold transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
         >
           <ArrowRightIcon className="size-4" />
         </button>

@@ -2,12 +2,16 @@ import Image from "next/image";
 import SectionBackground from "@/components/ui/SectionBackground";
 import SectionBlend from "@/components/ui/SectionBlend";
 import CornerFrame from "@/components/ui/CornerFrame";
-import { UserIcon } from "@/components/ui/icons";
+import GhostButton from "@/components/ui/GhostButton";
+import { UserIcon, ArrowRightIcon } from "@/components/ui/icons";
 
 // Theme 2026 page's artist spotlight: portrait on the left, name/role/quote/
 // bio on the right -- one dedicated column for the person behind this year's
-// theme, distinct from ThemeStory (the theme's own narrative) above it.
-export default function ArtistSpotlight({ content }) {
+// theme, distinct from ThemeStory (the theme's own narrative) above it. Also
+// reused on the homepage (right after Theme) and on the Theme 2026 page --
+// both link through to the dedicated /artist page via `showProfileLink`,
+// which that page itself sets to false since it IS that destination.
+export default function ArtistSpotlight({ content, showProfileLink = true }) {
   const { subtitle, name, role, quote, bio, photo } = content;
 
   return (
@@ -44,14 +48,30 @@ export default function ArtistSpotlight({ content }) {
           </h2>
           <p className="mt-1 text-xs uppercase tracking-[0.2em] text-gold-soft">{role}</p>
 
-          <div className="relative mt-6 max-w-xl px-6 lg:px-0">
+          {/* px-6 lg:px-0 used to drop this box's horizontal padding to
+              zero at desktop width (to keep it flush-left with the name/
+              role above), which left the corner brackets with nowhere to
+              sit but flush against the quote text itself. A small, constant
+              padding at every size keeps the brackets clear of the text,
+              at the cost of a few pixels' difference in left alignment
+              that reads as intentional framing, not a mismatch. */}
+          <div className="relative mt-6 max-w-xl px-5 py-3">
             <CornerFrame tone="border-gold/40" />
             <p className="font-display text-lg italic leading-relaxed text-gold-soft">
-              "{quote}"
+              &ldquo;{quote}&rdquo;
             </p>
           </div>
 
           <p className="mt-6 max-w-xl text-sm leading-relaxed text-white/65">{bio}</p>
+
+          {showProfileLink ? (
+            <div className="mt-8 flex justify-center lg:justify-start">
+              <GhostButton href="/artist">
+                View Full Profile
+                <ArrowRightIcon className="size-4" />
+              </GhostButton>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

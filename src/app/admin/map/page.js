@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { findSection } from "@/lib/admin/sections";
-import AutoForm from "@/components/admin/AutoForm";
+import MapForm from "@/components/admin/MapForm";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 
 export const metadata = { title: "Pandal Map" };
@@ -9,6 +9,11 @@ export const metadata = { title: "Pandal Map" };
 // Puja Schedule, and Gallery: this is one shared content block (the pins +
 // categories), reused by both the Homepage's Pandal Map section and the Map
 // page, so it doesn't really belong to either page alone.
+//
+// Uses MapForm (hand-built) instead of the generic AutoForm -- see its own
+// comment for why: pins needed click-to-place on the actual map image and a
+// category dropdown, neither of which a generic field-by-field renderer can
+// offer without knowing this section's specific shape.
 export default async function AdminMapPage() {
   const section = findSection("map");
   const row = await db.content.findUnique({
@@ -25,7 +30,7 @@ export default async function AdminMapPage() {
       </p>
 
       <div className="mt-6 rounded-2xl border border-gold bg-white p-6 shadow-sm">
-        <AutoForm slug={section.slug} initialData={data} />
+        <MapForm slug={section.slug} initialData={data} />
       </div>
     </div>
   );

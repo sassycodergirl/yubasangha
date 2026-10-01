@@ -16,15 +16,29 @@ function daysUntil(dateStr) {
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const diff = target - startOfToday;
-  return Math.max(0, Math.ceil(diff / 86400000));
+  return Math.ceil(diff / 86400000);
 }
 
 function OccasionCard({ occasion, days }) {
   const { label, dateLabel, featured } = occasion;
+  // `days` is the raw (unclamped) day count -- negative once that occasion's
+  // date is behind "today", so the card can fade out instead of sitting at a
+  // misleading "0 days" forever.
+  const isPast = days !== null && days < 0;
+  const displayDays = days === null ? null : Math.max(0, days);
 
   if (featured) {
     return (
-      <div className="relative flex w-[126px] shrink-0 snap-start flex-col items-center rounded-lg bg-gradient-to-b from-maroon to-maroon-dark px-4 pb-5 pt-8 shadow-[0_0_30px_-8px_rgba(201,154,59,0.45)] sm:w-auto sm:flex-1 sm:shrink sm:basis-0">
+      <div
+        className={`relative flex w-[126px] shrink-0 snap-start flex-col items-center rounded-lg bg-gradient-to-b from-maroon to-maroon-dark px-4 pb-5 pt-8 shadow-[0_0_30px_-8px_rgba(201,154,59,0.45)] transition-[filter,opacity] duration-500 sm:w-auto sm:flex-1 sm:shrink sm:basis-0 ${
+          isPast ? "opacity-40 saturate-0 blur-[1.5px]" : ""
+        }`}
+      >
+        {isPast ? (
+          <span className="absolute inset-x-0 top-1/2 z-10 -translate-y-1/2 text-center text-[9px] font-semibold uppercase tracking-[0.25em] text-white/80">
+            Passed
+          </span>
+        ) : null}
         <CornerFrame />
         <span className="absolute -top-4 flex size-8 items-center justify-center rounded-full border border-gold bg-ink">
           <DiyaIcon className="size-4 text-gold" />
@@ -39,7 +53,7 @@ function OccasionCard({ occasion, days }) {
           className="mt-2 font-display text-4xl font-bold leading-none text-gold-soft sm:text-5xl"
           style={NUMBER_GLOW}
         >
-          {days === null ? "--" : days}
+          {displayDays === null ? "--" : displayDays}
         </p>
         <p className="mt-1.5 text-center text-[10px] uppercase tracking-[0.2em] text-white/70 sm:text-xs">
           Days
@@ -49,7 +63,16 @@ function OccasionCard({ occasion, days }) {
   }
 
   return (
-    <div className="relative flex w-[106px] shrink-0 snap-start flex-col items-center rounded-lg border border-gold/40 bg-white/[0.03] px-3 pb-5 pt-7 sm:w-auto sm:flex-1 sm:shrink sm:basis-0">
+    <div
+      className={`relative flex w-[106px] shrink-0 snap-start flex-col items-center rounded-lg border border-gold/40 bg-white/[0.03] px-3 pb-5 pt-7 transition-[filter,opacity] duration-500 sm:w-auto sm:flex-1 sm:shrink sm:basis-0 ${
+        isPast ? "opacity-40 saturate-0 blur-[1.5px]" : ""
+      }`}
+    >
+      {isPast ? (
+        <span className="absolute inset-x-0 top-1/2 z-10 -translate-y-1/2 text-center text-[9px] font-semibold uppercase tracking-[0.25em] text-white/70">
+          Passed
+        </span>
+      ) : null}
       <CornerFrame tone="border-gold/70" />
       <p className="text-center font-display text-sm font-semibold uppercase tracking-wide text-white sm:text-base">
         {label}
@@ -61,7 +84,7 @@ function OccasionCard({ occasion, days }) {
         className="mt-2 font-display text-3xl font-bold leading-none text-gold-soft sm:text-4xl"
         style={NUMBER_GLOW}
       >
-        {days === null ? "--" : days}
+        {displayDays === null ? "--" : displayDays}
       </p>
       <p className="mt-1.5 text-center text-[10px] uppercase tracking-[0.2em] text-white/60 sm:text-xs">
         Days
@@ -88,12 +111,7 @@ export default function FestivalCountdown({ content }) {
 
   return (
     <section className="relative overflow-hidden bg-ink py-16 text-white sm:py-20">
-      <SectionBackground image={backgroundImage} scrim={false} />
-
-      {/* Custom overlay in place of SectionBackground's default bg-ink/70 scrim. */}
-      {backgroundImage ? (
-        <div className="pointer-events-none absolute inset-0 bg-[color-mix(in_oklab,var(--color-ink)_70%,#000000d9)]" />
-      ) : null}
+      <SectionBackground image={backgroundImage} />
 
       <div className="relative mx-auto max-w-[1400px] px-6 sm:px-10 lg:px-16 xl:px-20">
         <div className="flex items-center justify-center gap-5">

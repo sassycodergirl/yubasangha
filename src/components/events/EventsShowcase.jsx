@@ -145,7 +145,7 @@ function EventModal({ event, onClose }) {
 // Events page: every event listed as a ticket-style card, with a "View
 // Details" button opening the full description/venue/date in a modal --
 // distinct from the homepage's single featured-event teaser
-// (EventsSponsors.jsx), which links straight to this page instead.
+// (UpcomingEvents.jsx), which links straight to this page instead.
 export default function EventsShowcase({ events }) {
   const [selected, setSelected] = useState(null);
 

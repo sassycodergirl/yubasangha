@@ -15,7 +15,7 @@ export default async function SponsorsPage() {
   return (
     <>
       <PageBanner content={banner} />
-      <SponsorsShowcase sponsors={sponsors.sponsors} />
+      <SponsorsShowcase content={sponsors} />
     </>
   );
 }
